@@ -32,7 +32,8 @@ from huggingface_hub.utils import IGNORE_GIT_FOLDER_PATTERNS
 #@markdown Standard Gym Env (0.21.0 API)
 
 # Local code imports
-from push_t_env import *
+from push_t_state_env import *
+from push_t_state_dataset import *
 
 def environment_demo():
 
@@ -59,8 +60,53 @@ def environment_demo():
         print("Action: ", repr(action))
         print("Action:   [target_agent_x, target_agent_y]")
 
+def dataset_demo():
+    #@markdown ### **Dataset Demo**
+
+    # download demonstration data from Google Drive, unzip, and put it in this directory. Link is https://drive.google.com/uc?id=1KY1InLurpMvJDRb14L9NlXT_fEsCvVUq&confirm=t 
+    dataset_path = "pusht_cchi_v7_replay"
+
+    # parameters
+    pred_horizon = 16
+    obs_horizon = 2
+    action_horizon = 8
+    #|o|o|                             observations: 2
+    #| |a|a|a|a|a|a|a|a|               actions executed: 8
+    #|p|p|p|p|p|p|p|p|p|p|p|p|p|p|p|p| actions predicted: 16
+
+    # create dataset from file
+    dataset = PushTStateDataset(
+        dataset_path=dataset_path,
+        pred_horizon=pred_horizon,
+        obs_horizon=obs_horizon,
+        action_horizon=action_horizon
+    )
+    # save training data statistics (min, max) for each dim
+    stats = dataset.stats
+
+    # create dataloader
+    dataloader = torch.utils.data.DataLoader(
+        dataset,
+        batch_size=256,
+        num_workers=1,
+        shuffle=True,
+        # accelerate cpu-gpu transfer
+        pin_memory=True,
+        # don't kill worker process afte each epoch
+        persistent_workers=True
+    )
+
+    # visualize data in batch
+    batch = next(iter(dataloader))
+    print("batch['obs'].shape:", batch['obs'].shape)
+    print("batch['action'].shape", batch['action'].shape)
+
 if __name__ == '__main__':
 
     # Run environment demo
     print("Running environment demo...")
     environment_demo()
+
+    # Run dataset demo
+    print("Running dataset demo...")
+    dataset_demo()

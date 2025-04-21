@@ -2,3 +2,6 @@
 .env
 .venv/
 **__pycache__/
+
+# datasets
+state_policy_experiments/pusht_cchi_v7_replay/
