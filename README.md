@@ -1,2 +1,2 @@
 # robotics_policy_ttc
-Robotics diffusion policy scaling through denoising trajectory space search at test time
+World's first framework for robotics diffusion policy scaling through denoising trajectory space search at test time.
