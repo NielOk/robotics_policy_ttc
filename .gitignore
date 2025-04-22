@@ -4,4 +4,7 @@
 **__pycache__/
 
 # datasets
-state_policy_experiments/pusht_cchi_v7_replay/
+push_t_state_policy_experiments/pusht_cchi_v7_replay/
+
+# pretrained weights
+push_t_state_policy_experiments/pusht_state_100ep.ckpt

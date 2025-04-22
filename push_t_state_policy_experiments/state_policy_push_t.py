@@ -1,4 +1,6 @@
-# diffusion policy import
+### This script is the set of dmeos for push t state policy, and uses pretrained weights ###
+
+# diffusion policy import.
 from typing import Tuple, Sequence, Dict, Union, Optional
 import numpy as np
 import math
@@ -61,11 +63,10 @@ def environment_demo():
         print("Action: ", repr(action))
         print("Action:   [target_agent_x, target_agent_y]")
 
-def dataset_demo(pred_horizon, obs_horizon, action_horizon):
+def dataset_demo(pred_horizon, obs_horizon, action_horizon, dataset_path="pusht_cchi_v7_replay"):
     #@markdown ### **Dataset Demo**
 
-    # download demonstration data from Google Drive, unzip, and put it in this directory. Link is https://drive.google.com/uc?id=1KY1InLurpMvJDRb14L9NlXT_fEsCvVUq&confirm=t 
-    dataset_path = "pusht_cchi_v7_replay"
+    # download demonstration data from Google Drive, unzip, and put it in the dataset_path. Link is https://drive.google.com/uc?id=1KY1InLurpMvJDRb14L9NlXT_fEsCvVUq&confirm=t 
 
     #|o|o|                             observations: 2
     #| |a|a|a|a|a|a|a|a|               actions executed: 8
@@ -147,6 +148,23 @@ def network_demo(pred_horizon, obs_horizon):
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     _ = noise_pred_net.to(device)
 
+    return noise_pred_net
+
+def load_pretrained_weights(noise_pred_net, ckpt_path="pusht_state_100ep.ckpt"):
+
+    # Download pretrained weights from Google Drive and put it in ckpt_path. Link: https://drive.google.com/uc?id=1mHDr_DEZSdiGo9yecL50BBQYzR8Fjhl_&confirm=t
+
+    if not os.path.isfile(ckpt_path):
+        id = "1mHDr_DEZSdiGo9yecL50BBQYzR8Fjhl_&confirm=t"
+        gdown.download(id=id, output=ckpt_path, quiet=False)
+
+    state_dict = torch.load(ckpt_path, map_location='cuda')
+    ema_noise_pred_net = noise_pred_net
+    ema_noise_pred_net.load_state_dict(state_dict)
+    print('Pretrained weights loaded.')
+
+    return ema_noise_pred_net
+
 if __name__ == '__main__':
 
     # Run environment demo
@@ -156,11 +174,15 @@ if __name__ == '__main__':
     pred_horizon = 16
     obs_horizon = 2
     action_horizon = 8
-
+    
     # Run dataset demo
     print("Running dataset demo...")
     dataset_demo(pred_horizon, obs_horizon, action_horizon)
 
     # Run network demo
     print("Running network demo...")
-    network_demo(pred_horizon, obs_horizon)
+    noise_pred_net = network_demo(pred_horizon, obs_horizon)
+
+    # Load pretrained weights
+    print("Loading pretrained weights...")
+    ema_noise_pred_net = load_pretrained_weights(noise_pred_net)
