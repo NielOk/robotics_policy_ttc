@@ -34,6 +34,7 @@ from huggingface_hub.utils import IGNORE_GIT_FOLDER_PATTERNS
 # Local code imports
 from push_t_state_env import *
 from push_t_state_dataset import *
+from push_t_state_network import *
 
 def environment_demo():
 
@@ -60,16 +61,12 @@ def environment_demo():
         print("Action: ", repr(action))
         print("Action:   [target_agent_x, target_agent_y]")
 
-def dataset_demo():
+def dataset_demo(pred_horizon, obs_horizon, action_horizon):
     #@markdown ### **Dataset Demo**
 
     # download demonstration data from Google Drive, unzip, and put it in this directory. Link is https://drive.google.com/uc?id=1KY1InLurpMvJDRb14L9NlXT_fEsCvVUq&confirm=t 
     dataset_path = "pusht_cchi_v7_replay"
 
-    # parameters
-    pred_horizon = 16
-    obs_horizon = 2
-    action_horizon = 8
     #|o|o|                             observations: 2
     #| |a|a|a|a|a|a|a|a|               actions executed: 8
     #|p|p|p|p|p|p|p|p|p|p|p|p|p|p|p|p| actions predicted: 16
@@ -101,12 +98,69 @@ def dataset_demo():
     print("batch['obs'].shape:", batch['obs'].shape)
     print("batch['action'].shape", batch['action'].shape)
 
+def network_demo(pred_horizon, obs_horizon):
+    #@markdown ### **Network Demo**
+
+    # observation and action dimensions corrsponding to
+    # the output of PushTEnv
+    obs_dim = 5
+    action_dim = 2
+
+    # create network object
+    noise_pred_net = ConditionalUnet1D(
+        input_dim=action_dim,
+        global_cond_dim=obs_dim*obs_horizon
+    )
+
+    # example inputs
+    noised_action = torch.randn((1, pred_horizon, action_dim))
+    obs = torch.zeros((1, obs_horizon, obs_dim))
+    diffusion_iter = torch.zeros((1,))
+
+    # the noise prediction network
+    # takes noisy action, diffusion iteration and observation as input
+    # predicts the noise added to action
+    noise = noise_pred_net(
+        sample=noised_action,
+        timestep=diffusion_iter,
+        global_cond=obs.flatten(start_dim=1))
+
+    # illustration of removing noise
+    # the actual noise removal is performed by NoiseScheduler
+    # and is dependent on the diffusion noise schedule
+    denoised_action = noised_action - noise
+
+    # for this demo, we use DDPMScheduler with 100 diffusion iterations
+    num_diffusion_iters = 100
+    noise_scheduler = DDPMScheduler(
+        num_train_timesteps=num_diffusion_iters,
+        # the choise of beta schedule has big impact on performance
+        # we found squared cosine works the best
+        beta_schedule='squaredcos_cap_v2',
+        # clip output to [-1,1] to improve stability
+        clip_sample=True,
+        # our network predicts noise (instead of denoised action)
+        prediction_type='epsilon'
+    )
+
+    # device transfer
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    _ = noise_pred_net.to(device)
+
 if __name__ == '__main__':
 
     # Run environment demo
     print("Running environment demo...")
     environment_demo()
 
+    pred_horizon = 16
+    obs_horizon = 2
+    action_horizon = 8
+
     # Run dataset demo
     print("Running dataset demo...")
-    dataset_demo()
+    dataset_demo(pred_horizon, obs_horizon, action_horizon)
+
+    # Run network demo
+    print("Running network demo...")
+    network_demo(pred_horizon, obs_horizon)
