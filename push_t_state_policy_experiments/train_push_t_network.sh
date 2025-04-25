@@ -17,25 +17,14 @@ read -p "Enter the SSH host/instance address (e.g. 129.146.33.218): " remote_ssh
 read -p "Enter the name of your huggingface api key in .env file: " huggingface_api_key_name
 HUGGINGFACE_API_KEY=$(eval echo \$$huggingface_api_key_name)
 
-# Copy model checkpoint to the remote instance
-MODEL_CHECKPOINT_PATH="./pusht_state_100ep.ckpt"
-
-read -p "Would you like to copy the model checkpoint to the remote instance? (y/n): " copy_model
-if [[ $copy_model == "y" ]]; then
-    echo "Copying model checkpoint to remote instance..."
-    scp -i "$private_ssh_key" "$MODEL_CHECKPOINT_PATH" "$remote_ssh_user@$remote_ssh_host:~/$MODEL_CHECKPOINT_PATH"
-else
-    echo "Skipping model checkpoint copy."
-fi
-
-# Copy inference script to the remote instance
+# Copy training script to the remote instance
 TRAINING_SCRIPT_PATH="./train_push_t_network.py"
 DATASET_SCRIPT_PATH="./push_t_state_dataset.py"
 ENV_SCRIPT_PATH="./push_t_state_env.py"
 NETWORK_SCRIPT_PATH="./push_t_state_network.py"
-read -p "Would you like to copy the inference scripts to the remote instance? (y/n): " copy_script
+read -p "Would you like to copy the training scripts to the remote instance? (y/n): " copy_script
 if [[ $copy_script == "y" ]]; then
-    echo "Copying inference scripts to remote instance..."
+    echo "Copying training scripts to remote instance..."
     scp -i "$private_ssh_key" "$TRAINING_SCRIPT_PATH" "$remote_ssh_user@$remote_ssh_host:~/$TRAINING_SCRIPT_PATH"
     scp -i "$private_ssh_key" "$DATASET_SCRIPT_PATH" "$remote_ssh_user@$remote_ssh_host:~/$DATASET_SCRIPT_PATH"
     scp -i "$private_ssh_key" "$ENV_SCRIPT_PATH" "$remote_ssh_user@$remote_ssh_host:~/$ENV_SCRIPT_PATH"
@@ -67,11 +56,11 @@ else
 fi
 
 # Run the training script on the remote instance
-read -p "Would you like to run the inference script on the remote instance? (y/n): " run_inference
+read -p "Would you like to run the training script on the remote instance? (y/n): " run_inference
 if [[ $run_inference == "y" ]]; then
 
-    echo "Running inference script on remote instance..."
+    echo "Running training script on remote instance..."
     ssh -i "$private_ssh_key" "$remote_ssh_user@$remote_ssh_host" "source .venv/bin/activate && nohup python3 ~/$TRAINING_SCRIPT_PATH > push_t_state_policy_training.log 2>&1 &" &
 else
-    echo "Skipping inference script execution."
+    echo "Skipping training script execution."
 fi
