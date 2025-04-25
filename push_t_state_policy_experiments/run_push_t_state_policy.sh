@@ -29,20 +29,37 @@ else
 fi
 
 # Copy inference script to the remote instance
-ENTROPY_MEASUREMENT_SCRIPT_PATH="./state_policy_push_t.py"
-read -p "Would you like to copy the inference script to the remote instance? (y/n): " copy_script
+MAIN_SCRIPT_PATH="./state_policy_push_t.py"
+DATASET_SCRIPT_PATH="./push_t_state_dataset.py"
+ENV_SCRIPT_PATH="./push_t_state_env.py"
+NETWORK_SCRIPT_PATH="./push_t_state_network.py"
+read -p "Would you like to copy the inference scripts to the remote instance? (y/n): " copy_script
 if [[ $copy_script == "y" ]]; then
-    echo "Copying inference script to remote instance..."
-    scp -i "$private_ssh_key" "$ENTROPY_MEASUREMENT_SCRIPT_PATH" "$remote_ssh_user@$remote_ssh_host:~/$ENTROPY_MEASUREMENT_SCRIPT_PATH"
+    echo "Copying inference scripts to remote instance..."
+    scp -i "$private_ssh_key" "$MAIN_SCRIPT_PATH" "$remote_ssh_user@$remote_ssh_host:~/$MAIN_SCRIPT_PATH"
+    scp -i "$private_ssh_key" "$DATASET_SCRIPT_PATH" "$remote_ssh_user@$remote_ssh_host:~/$DATASET_SCRIPT_PATH"
+    scp -i "$private_ssh_key" "$ENV_SCRIPT_PATH" "$remote_ssh_user@$remote_ssh_host:~/$ENV_SCRIPT_PATH"
+    scp -i "$private_ssh_key" "$NETWORK_SCRIPT_PATH" "$remote_ssh_user@$remote_ssh_host:~/$NETWORK_SCRIPT_PATH"
 else
     echo "Skipping script copy."
+fi
+
+# Copy dataset to the remote instance
+DATASET_PATH="./pusht_cchi_v7_replay"
+read -p "Would you like to copy the dataset to the remote instance? (y/n): " copy_dataset
+if [[ $copy_dataset == "y" ]]; then
+    echo "Copying dataset to remote instance..."
+    scp -r -i "$private_ssh_key" "$DATASET_PATH" "$remote_ssh_user@$remote_ssh_host:~/"
+else
+    echo "Skipping dataset copy."
 fi
 
 # Install requirements
 read -p "Would you like to install the requirements on the remote instance? (y/n): " install_requirements
 if [[ $install_requirements == "y" ]]; then
     echo "Installing requirements on remote instance..."
-    ssh -i "$private_ssh_key" "$remote_ssh_user@$remote_ssh_host" "pip install torch numpy transformers accelerate jinja2==3.1.0 datasets"
+    ssh -i "$private_ssh_key" "$remote_ssh_user@$remote_ssh_host" "python3 -m venv .venv"
+    ssh -i "$private_ssh_key" "$remote_ssh_user@$remote_ssh_host" "source .venv/bin/activate && pip install torch==1.13.1 torchvision==0.14.1 diffusers==0.18.2 scikit-image==0.19.3 scikit-video==1.1.11 zarr==2.12.0 numcodecs==0.10.2 pygame==2.1.2 pymunk==6.2.1 gym==0.26.2 shapely==1.8.4 huggingface_hub==0.15.1 numpy==1.23.5 opencv-python==4.6.0.66 ipython==8.10.0 gdown==4.7.1"
 
     ssh -i "$private_ssh_key" "$remote_ssh_user@$remote_ssh_host" "echo 'hugging_face_api_key=$HUGGINGFACE_API_KEY' >> '/home/$remote_ssh_user/.env'"
 else
@@ -53,11 +70,8 @@ fi
 read -p "Would you like to run the inference script on the remote instance? (y/n): " run_inference
 if [[ $run_inference == "y" ]]; then
 
-    # Check if user wants instruct or base model
-    read -p "Choose 'base' or 'instruct' model variant: " model_variant
-
-    echo "Running inference script on remote instance for model variant: $model_variant..."
-    ssh -i "$private_ssh_key" "$remote_ssh_user@$remote_ssh_host" "nohup python3 ~/$ENTROPY_MEASUREMENT_SCRIPT_PATH --model_variant $model_variant > ${model_variant}_logits_measurement_output.log 2>&1 &" &
+    echo "Running inference script on remote instance..."
+    ssh -i "$private_ssh_key" "$remote_ssh_user@$remote_ssh_host" "source .venv/bin/activate && nohup python3 ~/$MAIN_SCRIPT_PATH > push_t_state_policy_experiment_results.log 2>&1 &" &
 else
     echo "Skipping inference script execution."
 fi
