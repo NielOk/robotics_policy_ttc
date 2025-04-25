@@ -1,0 +1,1 @@
+push_t_state_policy_experiment_results.log is the output log for state_policy_push_t.py. vis.mp4 is a video of the task being completed in the simulation environment, and can be played in vscode. 
