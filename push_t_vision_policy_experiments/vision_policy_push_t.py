@@ -32,6 +32,10 @@ import os
 
 # Local code imports
 from push_t_vision_env import *
+from push_t_vision_dataset import *
+
+VISION_POLICY_EXAMPLE_DIR = os.path.dirname(os.path.abspath(__file__))
+REPO_DIR = os.path.dirname(VISION_POLICY_EXAMPLE_DIR)
 
 def environment_demo():
     # 0. create env object
@@ -56,8 +60,52 @@ def environment_demo():
         print("obs['agent_pos'].shape:", obs['agent_pos'].shape, "float32, [0,512]")
         print("action.shape: ", action.shape, "float32, [0,512]")
 
+def dataset_demo():
+    # download demonstration data from Google Drive
+    dataset_path = os.path.join(REPO_DIR, "pusht_cchi_v7_replay")
+    
+    # parameters
+    pred_horizon = 16
+    obs_horizon = 2
+    action_horizon = 8
+    #|o|o|                             observations: 2
+    #| |a|a|a|a|a|a|a|a|               actions executed: 8
+    #|p|p|p|p|p|p|p|p|p|p|p|p|p|p|p|p| actions predicted: 16
+
+    # create dataset from file
+    dataset = PushTImageDataset(
+        dataset_path=dataset_path,
+        pred_horizon=pred_horizon,
+        obs_horizon=obs_horizon,
+        action_horizon=action_horizon
+    )
+    # save training data statistics (min, max) for each dim
+    stats = dataset.stats
+
+    # create dataloader
+    dataloader = torch.utils.data.DataLoader(
+        dataset,
+        batch_size=64,
+        num_workers=4,
+        shuffle=True,
+        # accelerate cpu-gpu transfer
+        pin_memory=True,
+        # don't kill worker process afte each epoch
+        persistent_workers=True
+    )
+
+    # visualize data in batch
+    batch = next(iter(dataloader))
+    print("batch['image'].shape:", batch['image'].shape)
+    print("batch['agent_pos'].shape:", batch['agent_pos'].shape)
+    print("batch['action'].shape", batch['action'].shape)
+
 if __name__ == '__main__':
 
     # Run environment demo
     print("Running environment demo...")
     environment_demo()
+
+    # Run dataset demo
+    print("Running dataset demo...")
+    dataset_demo()
