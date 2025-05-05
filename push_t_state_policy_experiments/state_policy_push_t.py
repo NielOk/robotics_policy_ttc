@@ -38,6 +38,9 @@ from push_t_state_env import *
 from push_t_state_dataset import *
 from push_t_state_network import *
 
+STATE_POLICY_EXAMPLE_DIR = os.path.dirname(os.path.abspath(__file__))
+REPO_DIR = os.path.dirname(STATE_POLICY_EXAMPLE_DIR)
+
 def environment_demo():
 
     # 0. create env object
@@ -156,10 +159,6 @@ def load_pretrained_weights(noise_pred_net, ckpt_path="pusht_state_100ep.ckpt"):
 
     # Download pretrained weights from Google Drive and put it in ckpt_path. Link: https://drive.google.com/uc?id=1mHDr_DEZSdiGo9yecL50BBQYzR8Fjhl_&confirm=t
 
-    if not os.path.isfile(ckpt_path):
-        id = "1mHDr_DEZSdiGo9yecL50BBQYzR8Fjhl_&confirm=t"
-        gdown.download(id=id, output=ckpt_path, quiet=False)
-
     state_dict = torch.load(ckpt_path, map_location='cuda')
     ema_noise_pred_net = noise_pred_net
     ema_noise_pred_net.load_state_dict(state_dict)
@@ -276,7 +275,8 @@ if __name__ == '__main__':
     
     # Run dataset demo
     print("Running dataset demo...")
-    stats = dataset_demo(pred_horizon, obs_horizon, action_horizon)
+    dataset_path = os.path.join(REPO_DIR, "pusht_cchi_v7_replay")
+    stats = dataset_demo(pred_horizon, obs_horizon, action_horizon, dataset_path=dataset_path)
 
     # Run network demo
     print("Running network demo...")
