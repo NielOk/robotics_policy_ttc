@@ -18,23 +18,17 @@ read -p "Enter the name of your huggingface api key in .env file: " huggingface_
 HUGGINGFACE_API_KEY=$(eval echo \$$huggingface_api_key_name)
 
 # Copy training script to the remote instance
-TRAINING_SCRIPT_PATH="./train_push_t_network.py"
-DATASET_SCRIPT_PATH="./push_t_state_dataset.py"
-ENV_SCRIPT_PATH="./push_t_state_env.py"
-NETWORK_SCRIPT_PATH="./push_t_state_network.py"
-read -p "Would you like to copy the training scripts to the remote instance? (y/n): " copy_script
+cd ../
+UTILS_DIR="/state_policy_utils"
+read -p "Would you like to copy the utils scripts to the remote instance? (y/n): " copy_script
 if [[ $copy_script == "y" ]]; then
-    echo "Copying training scripts to remote instance..."
-    scp -i "$private_ssh_key" "$TRAINING_SCRIPT_PATH" "$remote_ssh_user@$remote_ssh_host:~/$TRAINING_SCRIPT_PATH"
-    scp -i "$private_ssh_key" "$DATASET_SCRIPT_PATH" "$remote_ssh_user@$remote_ssh_host:~/$DATASET_SCRIPT_PATH"
-    scp -i "$private_ssh_key" "$ENV_SCRIPT_PATH" "$remote_ssh_user@$remote_ssh_host:~/$ENV_SCRIPT_PATH"
-    scp -i "$private_ssh_key" "$NETWORK_SCRIPT_PATH" "$remote_ssh_user@$remote_ssh_host:~/$NETWORK_SCRIPT_PATH"
+    echo "Copying utils scripts to remote instance..."
+    scp -r -i "$private_ssh_key" "$UTILS_DIR" "$remote_ssh_user@$remote_ssh_host:~/$UTILS_DIR"
 else
     echo "Skipping script copy."
 fi
 
 # Copy dataset to the remote instance
-cd ../
 DATASET_PATH="./pusht_cchi_v7_replay"
 read -p "Would you like to copy the dataset to the remote instance? (y/n): " copy_dataset
 if [[ $copy_dataset == "y" ]]; then
@@ -43,7 +37,6 @@ if [[ $copy_dataset == "y" ]]; then
 else
     echo "Skipping dataset copy."
 fi
-cd push_t_state_policy_experiments/
 
 # Install requirements
 read -p "Would you like to install the requirements on the remote instance? (y/n): " install_requirements
@@ -58,6 +51,7 @@ else
 fi
 
 # Run the training script on the remote instance
+TRAINING_SCRIPT_PATH="$UTILS_DIR/train_push_t_network.py"
 read -p "Would you like to run the training script on the remote instance? (y/n): " run_inference
 if [[ $run_inference == "y" ]]; then
 

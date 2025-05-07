@@ -288,7 +288,8 @@ if __name__ == '__main__':
 
     # Load pretrained weights
     print("Loading pretrained weights...")
-    ema_noise_pred_net = load_pretrained_weights(noise_pred_net)
+    ckpt_path = os.path.join(STATE_POLICY_EXAMPLE_DIR, "pusht_state_100ep.ckpt")
+    ema_noise_pred_net = load_pretrained_weights(noise_pred_net, ckpt_path=ckpt_path)
 
     # Run inference
     print("Running inference...")
