@@ -18,34 +18,41 @@ read -p "Enter the name of your huggingface api key in .env file: " huggingface_
 HUGGINGFACE_API_KEY=$(eval echo \$$huggingface_api_key_name)
 
 # Copy model checkpoint to the remote instance
+OVERALL_PROJECT_DIR="push_t_state_policy_experiments"
 MODEL_CHECKPOINT_PATH="./pusht_state_100ep.ckpt"
 
 read -p "Would you like to copy the model checkpoint to the remote instance? (y/n): " copy_model
 if [[ $copy_model == "y" ]]; then
     echo "Copying model checkpoint to remote instance..."
-    scp -i "$private_ssh_key" "$MODEL_CHECKPOINT_PATH" "$remote_ssh_user@$remote_ssh_host:~/$MODEL_CHECKPOINT_PATH"
+    ssh -i "$private_ssh_key" "$remote_ssh_user@$remote_ssh_host" "mkdir -p ~/$OVERALL_PROJECT_DIR"
+    scp -i "$private_ssh_key" "$MODEL_CHECKPOINT_PATH" "$remote_ssh_user@$remote_ssh_host:~/$OVERALL_PROJECT_DIR/$MODEL_CHECKPOINT_PATH"
 else
     echo "Skipping model checkpoint copy."
 fi
 
 # Copy inference script to the remote instance
 MAIN_SCRIPT_PATH="./state_policy_push_t.py"
-DATASET_SCRIPT_PATH="./push_t_state_dataset.py"
-ENV_SCRIPT_PATH="./push_t_state_env.py"
-NETWORK_SCRIPT_PATH="./push_t_state_network.py"
 read -p "Would you like to copy the inference scripts to the remote instance? (y/n): " copy_script
 if [[ $copy_script == "y" ]]; then
     echo "Copying inference scripts to remote instance..."
-    scp -i "$private_ssh_key" "$MAIN_SCRIPT_PATH" "$remote_ssh_user@$remote_ssh_host:~/$MAIN_SCRIPT_PATH"
-    scp -i "$private_ssh_key" "$DATASET_SCRIPT_PATH" "$remote_ssh_user@$remote_ssh_host:~/$DATASET_SCRIPT_PATH"
-    scp -i "$private_ssh_key" "$ENV_SCRIPT_PATH" "$remote_ssh_user@$remote_ssh_host:~/$ENV_SCRIPT_PATH"
-    scp -i "$private_ssh_key" "$NETWORK_SCRIPT_PATH" "$remote_ssh_user@$remote_ssh_host:~/$NETWORK_SCRIPT_PATH"
+    scp -i "$private_ssh_key" "$MAIN_SCRIPT_PATH" "$remote_ssh_user@$remote_ssh_host:~/$OVERALL_PROJECT_DIR/$MAIN_SCRIPT_PATH"
 else
     echo "Skipping script copy."
 fi
 
-# Copy dataset to the remote instance
+# Copy utils scripts to the remote instance
 cd ../
+UTILS_DIR="./state_policy_utils"
+read -p "Would you like to copy the utils scripts to the remote instance? (y/n): " copy_utils
+if [[ $copy_utils == "y" ]]; then
+    echo "Copying utils scripts to remote instance..."
+    scp -r -i "$private_ssh_key" "$UTILS_DIR" "$remote_ssh_user@$remote_ssh_host:~/$UTILS_DIR"
+else
+    echo "Skipping utils script copy."
+fi
+
+# Copy dataset to the remote instance
+
 DATASET_PATH="./pusht_cchi_v7_replay"
 read -p "Would you like to copy the dataset to the remote instance? (y/n): " copy_dataset
 if [[ $copy_dataset == "y" ]]; then
@@ -74,7 +81,7 @@ read -p "Would you like to run the inference script on the remote instance? (y/n
 if [[ $run_inference == "y" ]]; then
 
     echo "Running inference script on remote instance..."
-    ssh -i "$private_ssh_key" "$remote_ssh_user@$remote_ssh_host" "source .venv/bin/activate && nohup python3 ~/$MAIN_SCRIPT_PATH > push_t_state_policy_experiment_results.log 2>&1 &" &
+    ssh -i "$private_ssh_key" "$remote_ssh_user@$remote_ssh_host" "source .venv/bin/activate && nohup python3 ~/$OVERALL_PROJECT_DIR/$MAIN_SCRIPT_PATH > push_t_state_policy_experiment_results.log 2>&1 &" &
 else
     echo "Skipping inference script execution."
 fi

@@ -28,18 +28,22 @@ from skvideo.io import vwrite
 from IPython.display import Video
 import gdown
 import os
+import sys
 
 from huggingface_hub.utils import IGNORE_GIT_FOLDER_PATTERNS
 #@markdown ### **Env Demo**
 #@markdown Standard Gym Env (0.21.0 API)
 
 # Local code imports
+STATE_POLICY_EXAMPLE_DIR = os.path.dirname(os.path.abspath(__file__))
+REPO_DIR = os.path.dirname(STATE_POLICY_EXAMPLE_DIR)
+UTILS_DIR = os.path.join(REPO_DIR, "state_policy_utils")
+if os.path.exists(UTILS_DIR):
+    sys.path.append(UTILS_DIR)
+
 from push_t_state_env import *
 from push_t_state_dataset import *
 from push_t_state_network import *
-
-STATE_POLICY_EXAMPLE_DIR = os.path.dirname(os.path.abspath(__file__))
-REPO_DIR = os.path.dirname(STATE_POLICY_EXAMPLE_DIR)
 
 def environment_demo():
 
