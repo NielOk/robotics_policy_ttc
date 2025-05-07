@@ -291,6 +291,12 @@ if __name__ == '__main__':
     ckpt_path = os.path.join(STATE_POLICY_EXAMPLE_DIR, "pusht_state_100ep.ckpt")
     ema_noise_pred_net = load_pretrained_weights(noise_pred_net, ckpt_path=ckpt_path)
 
+    # Set the device for the model
+    ema_noise_pred_net.to(device)
+
+    # Set the model to evaluation mode
+    ema_noise_pred_net.eval()
+
     # Run inference
     print("Running inference...")
     run_inference(ema_noise_pred_net, noise_scheduler, stats, num_diffusion_iters, action_dim, device)
