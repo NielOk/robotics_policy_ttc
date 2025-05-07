@@ -34,6 +34,7 @@ else
 fi
 
 # Copy dataset to the remote instance
+cd ../
 DATASET_PATH="./pusht_cchi_v7_replay"
 read -p "Would you like to copy the dataset to the remote instance? (y/n): " copy_dataset
 if [[ $copy_dataset == "y" ]]; then
@@ -42,6 +43,7 @@ if [[ $copy_dataset == "y" ]]; then
 else
     echo "Skipping dataset copy."
 fi
+cd push_t_state_policy_experiments/
 
 # Install requirements
 read -p "Would you like to install the requirements on the remote instance? (y/n): " install_requirements
