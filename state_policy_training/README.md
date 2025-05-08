@@ -1,0 +1,1 @@
+After training, checkpoints should just be kept on GPU, as each checkpoint is about 500MB in size.
