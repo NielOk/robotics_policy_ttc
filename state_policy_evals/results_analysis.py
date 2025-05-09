@@ -40,7 +40,13 @@ def plot_results(cleaned_results):
 
     plt.figure(figsize=(10, 6))
     plt.errorbar(x, means, yerr=stds, fmt='o-', capsize=5, label='Mean ± Std Dev', color='steelblue')
-    plt.xticks(x, epochs, rotation=45)
+
+    # Show label every 5th tick
+    skip = 5
+    xticks_to_show = x[::skip]
+    xtick_labels_to_show = epochs[::skip]
+    plt.xticks(xticks_to_show, xtick_labels_to_show, rotation=45)
+
     plt.xlabel('Epoch')
     plt.ylabel('Score')
     plt.title('Evaluation Results per Epoch')
