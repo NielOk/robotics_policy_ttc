@@ -14,3 +14,4 @@ numpy==1.23.5
 opencv-python==4.6.0.66
 ipython==8.10.0
 gdown==4.7.1
+matplotlib==3.10.3
