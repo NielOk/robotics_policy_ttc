@@ -50,7 +50,7 @@ else
     echo "Skipping requirements installation."
 fi
 
-# Run the training script on the remote instance
+# Run the eval script on the remote instance
 EVAL_SCRIPT_PATH="$UTILS_DIR/state_policy_evals.py"
 read -p "Would you like to run the eval script on the remote instance? (y/n): " run_inference
 if [[ $run_inference == "y" ]]; then
