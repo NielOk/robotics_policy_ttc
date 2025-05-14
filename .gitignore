@@ -8,3 +8,4 @@ pusht_cchi_v7_replay/
 
 # pretrained weights
 push_t_state_policy_experiments/pusht_state_100ep.ckpt
+variance_aware_scaling/epoch_20.pt
