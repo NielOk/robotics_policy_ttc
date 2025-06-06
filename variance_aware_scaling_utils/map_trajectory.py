@@ -7,6 +7,8 @@ import collections
 import multiprocessing as mp
 import sys
 
+from variance_aware_scaling_utils import *
+
 VAR_AWARE_SCALING_UTILS_DIR = os.path.dirname(os.path.abspath(__file__))
 HOME_DIR = os.path.dirname(VAR_AWARE_SCALING_UTILS_DIR)
 STATE_POLICY_UTILS_DIR = os.path.join(HOME_DIR, "state_policy_utils")
@@ -18,13 +20,12 @@ from push_t_state_dataset import PushTStateDataset, normalize_data, unnormalize_
 from push_t_state_network import ConditionalUnet1D
 from diffusers.schedulers.scheduling_ddpm import DDPMScheduler
 
-def find_nonzero_eval_seeds(single_model_eval_results_json_path):
-    """
-    Find the non-zero eval seeds in single_model_eval_results_path
-    """
-    with open(single_model_eval_results_json_path, "r") as f:
-        single_model_eval_results_dict = json.load(f)
+def main():
+    
+    # Find the proper evaluation seeds
+    single_model_eval_results_path = os.path.join(VAR_AWARE_SCALING_UTILS_DIR, "single_model_eval_results.json")
+    nonzero_eval_seeds = find_nonzero_eval_seeds(single_model_eval_results_path)
+    print(len(nonzero_eval_seeds),nonzero_eval_seeds)
 
-    solved_seeds = single_model_eval_results_dict['solved_seeds']    
-
-    return solved_seeds
+if __name__ == '__main__':
+    main()
