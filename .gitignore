@@ -2,6 +2,7 @@
 .env
 .venv/
 **__pycache__/
+**.DS_Store
 
 # datasets
 pusht_cchi_v7_replay/
